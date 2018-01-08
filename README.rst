@@ -27,7 +27,7 @@ Using pip
 
 .. code-block:: bash
 
-   pip install ddtrace-graphql
+   $ pip install ddtrace-graphql
 
 
 From source
@@ -35,8 +35,8 @@ From source
 
 .. code-block:: bash
 
-   git clone https://github.com/beezz/ddtrace-graphql.git
-   cd ddtrace-graphql && python setup.py install
+   $ git clone https://github.com/beezz/ddtrace-graphql.git
+   $ cd ddtrace-graphql && python setup.py install
 
 
 Usage
@@ -73,8 +73,8 @@ Install from source in development mode
 
 .. code-block:: bash
 
-   git clone https://github.com/beezz/ddtrace-graphql.git
-   pip install --editable ddtrace-graphql[test]
+   $ git clone https://github.com/beezz/ddtrace-graphql.git
+   $ pip install --editable ddtrace-graphql[test]
 
 
 Run tests
@@ -82,4 +82,4 @@ Run tests
 
 .. code-block:: bash
 
-   tox
+   $ tox

@@ -18,12 +18,16 @@ Python library to trace graphql calls with Datadog.
 Usage
 =====
 
-To trace all GraphQL requests, patch the library like so:
+To trace all GraphQL requests patch the library. Put this snippet to your
+application main entry point. For the patching to work properly, it needs to be
+called before any other imports of the `graphql` function.
 
 .. code-block:: python
 
     from ddtrace_graphql import patch
     patch()
+
+    # from that point all calls to graphql are traced
 
     from graphql import graphql
     result = graphql(schema, query)

@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "nightly"
+install:
+  - pip install .[test]
+script:
+  - python -m pytest tests --cov-report term-missing --cov ddtrace_graphql

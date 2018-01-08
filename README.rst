@@ -64,10 +64,12 @@ for all supported libraries and frameworks.
 
 .. code-block:: python
 
-    # from that point all calls to graphql are traced
+   # app/__init__.py
+   __import__('ddtrace_graphql').patch()
 
-    from graphql import graphql
-    result = graphql(schema, query)
+   # from that point all calls to graphql are traced
+   from graphql import graphql
+   result = graphql(schema, query)
 
 
 Trace only certain calls with ``traced_graphql`` function

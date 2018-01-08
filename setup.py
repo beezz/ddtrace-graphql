@@ -21,7 +21,7 @@ setup(
     author_email='michal@bynder.com',  # Optional
     classifiers=[  # Optional
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Tracing',
+        'Topic :: Software Development :: Debuggers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',

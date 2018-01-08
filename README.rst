@@ -14,6 +14,8 @@ ddtrace-graphql
 
 Python library to trace graphql calls with Datadog.
 
+* `graphql-core <https://github.com/graphql-python/graphql-core>`_
+
 * `Datadog APM (Tracing) <https://docs.datadoghq.com/tracing/>`_
 
 * `Datadog Trace Client <http://pypi.datadoghq.com/trace/docs/>`_

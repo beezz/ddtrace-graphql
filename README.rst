@@ -39,15 +39,6 @@ From source
    cd ddtrace-graphql && python setup.py install
 
 
-From source in development mode
--------------------------------
-
-.. code-block:: bash
-
-   git clone https://github.com/beezz/ddtrace-graphql.git
-   pip install --editable ddtrace-graphql
-
-
 Usage
 =====
 
@@ -72,3 +63,23 @@ Trace only certain calls with ``traced_graphql`` function:
 
     from ddtrace_graphql import traced_graphql
     traced_graphql(schema, query)
+
+
+Development
+===========
+
+Install from source in development mode
+---------------------------------------
+
+.. code-block:: bash
+
+   git clone https://github.com/beezz/ddtrace-graphql.git
+   pip install --editable ddtrace-graphql[test]
+
+
+Run tests
+---------
+
+.. code-block:: bash
+
+   tox

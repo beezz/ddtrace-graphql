@@ -1,0 +1,4 @@
+ddtrace==0.10.0
+graphql-core==2.0
+pytest==3.3.2
+pytest-cov==2.5.1

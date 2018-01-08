@@ -19,6 +19,35 @@ Python library to trace graphql calls with Datadog.
 * `Datadog Trace Client <http://pypi.datadoghq.com/trace/docs/>`_
 
 
+Installation
+============
+
+Using pip
+---------
+
+.. code-block:: bash
+
+   pip install ddtrace-graphql
+
+
+From source
+------------
+
+.. code-block:: bash
+
+   git clone https://github.com/beezz/ddtrace-graphql.git
+   cd ddtrace-graphql && python setup.py install
+
+
+From source in development mode
+-------------------------------
+
+.. code-block:: bash
+
+   git clone https://github.com/beezz/ddtrace-graphql.git
+   pip install --editable ddtrace-graphql
+
+
 Usage
 =====
 

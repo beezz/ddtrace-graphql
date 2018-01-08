@@ -43,13 +43,26 @@ Usage
 =====
 
 To trace all GraphQL requests patch the library. Put this snippet to your
-application main entry point. For the patching to work properly, it needs to be
-called before any other imports of the `graphql` function.
+application main entry point.
+
 
 .. code-block:: python
 
-    from ddtrace_graphql import patch
-    patch()
+   __import__('ddtrace_graphql').patch()
+
+   # OR
+
+   from ddtrace_graphql import patch
+   patch()
+
+
+Check out the `datadog trace client <http://pypi.datadoghq.com/trace/docs/>`_
+for all supported libraries and frameworks.
+
+.. note:: For the patching to work properly, ``patch`` needs to be called
+          before any other imports of the ``graphql`` function.
+
+.. code-block:: python
 
     # from that point all calls to graphql are traced
 
@@ -57,7 +70,7 @@ called before any other imports of the `graphql` function.
     result = graphql(schema, query)
 
 
-Trace only certain calls with ``traced_graphql`` function:
+Trace only certain calls with ``traced_graphql`` function
 
 .. code-block:: python
 

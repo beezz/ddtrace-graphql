@@ -70,13 +70,29 @@ def _traced_graphql(func, _, args, kwargs):
     else:
         query = request_string
 
+    try:
+        # split by '(' for queries with arguments
+        # split by '{' for queries without arguments
+        span_resource = query.split(
+            '(' if '(' in query.split(' ', 2)[1] else '{',
+            1,
+        )[0].strip()
+    except:  # noqa
+        logger.exception('Cannot parse graphql resource name from: %s', query)
+        span_resource = 'unknown'
+
     # allow schemas their own tracer with fall-back to the global
     tracer = getattr(schema, 'datadog_tracer', ddtrace.tracer)
 
     if not tracer.enabled:
         return func(*args, **kwargs)
 
-    with tracer.trace(RES, span_type=TYPE, service=SERVICE,) as span:
+    with tracer.trace(
+        RES,
+        span_type=TYPE,
+        service=SERVICE,
+        resource=span_resource
+    ) as span:
         span.set_tag(QUERY, query)
         result = None
         try:

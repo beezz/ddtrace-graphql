@@ -165,3 +165,29 @@ class TestGraphQL:
         span = tracer.writer.pop()[0]
         assert span.get_tag(ERRORS)
         assert str(result.errors) == span.get_tag(ERRORS)
+
+    @staticmethod
+    def test_resource():
+        query = '{ hello world }'
+        tracer, schema = get_traced_schema()
+        traced_graphql(schema, query)
+        span = tracer.writer.pop()[0]
+        assert span.resource == query
+
+        query = 'mutation fnCall(args: Args) { }'
+        traced_graphql(schema, query)
+        span = tracer.writer.pop()[0]
+        assert span.resource == 'mutation fnCall'
+
+        query = 'mutation fnCall { }'
+        traced_graphql(schema, query)
+        span = tracer.writer.pop()[0]
+        assert span.resource == 'mutation fnCall'
+
+    @staticmethod
+    def test_tracer_disabled():
+        query = '{ hello world }'
+        tracer, schema = get_traced_schema()
+        tracer.enabled = False
+        traced_graphql(schema, query)
+        assert not tracer.writer.pop()

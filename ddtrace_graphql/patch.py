@@ -15,6 +15,7 @@ from graphql.language.ast import Document
 
 # project
 import ddtrace
+from ddtrace.filters import FilterRequestsOnUrl
 from ddtrace.util import unwrap
 
 
@@ -83,6 +84,12 @@ def _traced_graphql(func, _, args, kwargs):
 
     if not tracer.enabled:
         return func(*args, **kwargs)
+
+    tracer.configure(settings={
+	'FILTERS': [
+	    FilterRequestsOnUrl([r'http://.*/health', r'https://.*/health']),
+	],
+    })
 
     with tracer.trace(
         RES,

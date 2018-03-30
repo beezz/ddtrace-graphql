@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 _graphql = graphql.graphql
 
 TYPE = 'graphql'
-QUERY = 'graphql.query'
-ERRORS = 'graphql.errors'
-INVALID = 'graphql.invalid'
-DATA_EMPTY = 'graphql.data_empty'
+QUERY = 'query'
+ERRORS = 'errors'
+INVALID = 'invalid'
+DATA_EMPTY = 'data_empty'
 RES_NAME = 'graphql.graphql'
 #
 SERVICE_ENV_VAR = 'DDTRACE_GRAPHQL_SERVICE'

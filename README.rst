@@ -21,6 +21,21 @@ Python library to trace graphql calls with Datadog.
 * `Datadog Trace Client <http://pypi.datadoghq.com/trace/docs/>`_
 
 
+*Screenshots for pyramid app serving GraphQL with tracing enabled:*
+
+.. figure:: screenshots/service.png
+   :scale: 80%
+
+   GraphQL service detail.
+
+
+.. figure:: screenshots/query.png
+   :scale: 80%
+
+   GraphQL query detail.
+
+
+
 Installation
 ============
 
@@ -82,6 +97,49 @@ Trace only certain calls with ``traced_graphql`` function
     traced_graphql(schema, query)
 
 
+Configuration
+=============
+
+Environment variables
+=====================
+
+:DDTRACE_GRAPHQL_SERVICE: Define service name under which traces are shown in Datadog. Default value is ``graphql``
+
+
+.. code-block:: bash
+
+   $ export DDTRACE_GRAPHQL_SERVICE=foobar.graphql
+
+
+span_kwargs
+===========
+
+Default arguments passed to the tracing context manager can be updated using
+``span_kwargs`` argument of ``ddtrace_graphql.patch`` or
+``ddtrace_graphql.traced_graphql`` functions.
+
+Default values:
+
+:name: Wrapped resource name. Default ``graphql.graphql``.
+:span_type: Span type. Default ``graphql``.
+:service: Service name. Defaults to ``DDTRACE_GRAPHQL_SERVICE`` environment variable if present, else ``graphql``.
+:resource: Processed resource. Defaults to query / mutation signature.
+
+For more information visit `ddtrace.Tracer.trace <http://pypi.datadoghq.com/trace/docs/#ddtrace.Tracer.trace>`_ documentation.
+
+
+.. code-block:: python
+
+   from ddtrace_graphql import patch
+   patch(span_kwargs=dict(service='foo.graphql'))
+
+
+.. code-block:: python
+
+   from ddtrace_graphql import traced_graphql
+   traced_graphql(schema, query, span_kwargs=dict(resource='bar.resource'))
+
+
 Development
 ===========
 
@@ -99,4 +157,5 @@ Run tests
 
 .. code-block:: bash
 
+   $ cd ddtrace-graphql
    $ tox

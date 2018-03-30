@@ -12,6 +12,7 @@ import re
 import wrapt
 import graphql
 from graphql.language.ast import Document
+from graphql.error import GraphQLError
 
 # project
 import ddtrace
@@ -27,6 +28,7 @@ SERVICE = 'graphql'
 QUERY = 'graphql.query'
 ERRORS = 'graphql.errors'
 INVALID = 'graphql.invalid'
+DATA_EMPTY = 'graphql.data_empty'
 RES = 'graphql.graphql'
 
 
@@ -60,7 +62,7 @@ def _resolve_query_res(query):
     return re.split('[({]', query, 1)[0].strip() or query
 
 
-def _traced_graphql(func, _, args, kwargs):
+def _traced_graphql(func, args, kwargs):
     """
     Wrapper for graphql.graphql function.
     """
@@ -97,11 +99,23 @@ def _traced_graphql(func, _, args, kwargs):
             return result
         finally:
             # `span.error` must be integer
-            span.error = int(result is None or result.invalid)
+            span.error = int(result is None)
             if result is not None:
                 span.set_tag(ERRORS, result.errors)
                 span.set_metric(INVALID, int(result.invalid))
+                span.set_metric(DATA_EMPTY, int(result.data is None))
+                if result.errors and not result.invalid:
+                    span.error = 1
+                elif (
+                    result.errors
+                    and result.invalid
+                    and len(result.errors) == 1
+                    and not isinstance(result.errors[0], GraphQLError)
+                ):
+                    # based on execute_graphql implementation
+                    # graphql/graphql.py#L41
+                    span.error = 1
 
 
 def traced_graphql(*args, **kwargs):
-    return _traced_graphql(_graphql, None, args, kwargs)
+    return _traced_graphql(_graphql, args, kwargs)

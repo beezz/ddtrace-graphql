@@ -4,6 +4,7 @@ from graphql import (
     GraphQLString
 )
 import graphql
+from graphql.execution import ExecutionResult
 from graphql.language.source import Source as GraphQLSource
 from graphql.language.parser import parse as graphql_parse
 from wrapt import FunctionWrapper
@@ -15,8 +16,9 @@ from ddtrace.writer import AgentWriter
 from ddtrace_graphql import (
     TracedGraphQLSchema,
     patch, unpatch, traced_graphql,
-    QUERY, ERRORS, INVALID
+    QUERY, ERRORS, INVALID, DATA_EMPTY
 )
+from ddtrace_graphql.patch import _traced_graphql
 
 
 class DummyWriter(AgentWriter):
@@ -77,14 +79,15 @@ def get_dummy_tracer():
     return tracer
 
 
-def get_traced_schema(tracer=None, query=None):
+def get_traced_schema(tracer=None, query=None, resolver=None):
+    resolver = resolver or (lambda *_: 'world')
     tracer = tracer or get_dummy_tracer()
     query = query or GraphQLObjectType(
         name='RootQueryType',
         fields={
             'hello': GraphQLField(
                 type=GraphQLString,
-                resolver=lambda *_: 'world'
+                resolver=resolver,
             )
         }
     )
@@ -108,10 +111,42 @@ class TestGraphQL:
         result = traced_graphql(schema, '{ hello world }')
         span = tracer.writer.pop()[0]
         assert span.get_metric(INVALID) == int(result.invalid)
+        assert span.get_metric(DATA_EMPTY) == 1
+        assert span.error == 0
 
         result = traced_graphql(schema, '{ hello }')
         span = tracer.writer.pop()[0]
         assert span.get_metric(INVALID) == int(result.invalid)
+        assert span.error == 0
+
+    def test_unhandled_exception(self, monkeypatch):
+
+        def exc_resolver(*args):
+            raise Exception('Testing stuff')
+
+        tracer, schema = get_traced_schema(resolver=exc_resolver)
+        result = traced_graphql(schema, '{ hello }')
+        span = tracer.writer.pop()[0]
+        assert span.get_metric(INVALID) == 0
+        assert span.error == 1
+        assert span.get_metric(DATA_EMPTY) == 0
+
+        def _tg(*args, **kwargs):
+            def func(*args, **kwargs):
+                return ExecutionResult(
+                    errors=[Exception()],
+                    invalid=True,
+                )
+            return _traced_graphql(func, args, kwargs)
+
+        tracer, schema = get_traced_schema(resolver=exc_resolver)
+        result = _tg(schema, '{ hello }')
+
+        span = tracer.writer.pop()[0]
+        assert span.get_metric(INVALID) == 1
+        assert span.error == 1
+        assert span.get_metric(DATA_EMPTY) == 1
+
 
     def test_request_string_resolve(self):
         query = '{ hello }'

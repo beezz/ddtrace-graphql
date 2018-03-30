@@ -25,10 +25,11 @@ with require_modules(required_modules) as missing_modules:
         from .patch import (
             TracedGraphQLSchema,
             patch, unpatch, traced_graphql,
-            TYPE, SERVICE, QUERY, ERRORS, INVALID, RES
+            TYPE, SERVICE, QUERY, ERRORS, INVALID, RES, DATA_EMPTY
         )
         __all__ = [
             'TracedGraphQLSchema',
             'patch', 'unpatch', 'traced_graphql',
-            'TYPE', 'SERVICE', 'QUERY', 'ERRORS', 'INVALID', 'RES'
+            'TYPE', 'SERVICE', 'QUERY', 'ERRORS', 'INVALID',
+            'RES', 'DATA_EMPTY',
         ]

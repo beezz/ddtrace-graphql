@@ -5,7 +5,9 @@ https://github.com/graphql-python/graphql-core
 """
 
 # stdlib
+import functools
 import logging
+import os
 import re
 
 # 3p
@@ -24,12 +26,14 @@ logger = logging.getLogger(__name__)
 _graphql = graphql.graphql
 
 TYPE = 'graphql'
+QUERY = 'query'
+ERRORS = 'errors'
+INVALID = 'invalid'
+DATA_EMPTY = 'data_empty'
+RES_NAME = 'graphql.graphql'
+#
+SERVICE_ENV_VAR = 'DDTRACE_GRAPHQL_SERVICE'
 SERVICE = 'graphql'
-QUERY = 'graphql.query'
-ERRORS = 'graphql.errors'
-INVALID = 'graphql.invalid'
-DATA_EMPTY = 'graphql.data_empty'
-RES = 'graphql.graphql'
 
 
 class TracedGraphQLSchema(graphql.GraphQLSchema):
@@ -42,13 +46,16 @@ class TracedGraphQLSchema(graphql.GraphQLSchema):
         super(TracedGraphQLSchema, self).__init__(*args, **kwargs)
 
 
-def patch():
+def patch(span_kwargs=None):
     """
     Monkeypatches graphql-core library to trace graphql calls execution.
     """
     logger.debug('Patching `graphql.graphql` function.')
-    wrapt.wrap_function_wrapper(graphql, 'graphql', _traced_graphql)
 
+    def wrapper(func, _, args, kwargs):
+        return _traced_graphql(func, args, kwargs, span_kwargs=span_kwargs)
+
+    wrapt.wrap_function_wrapper(graphql, 'graphql', wrapper)
 
 def unpatch():
     logger.debug('Unpatching `graphql.graphql` function.')
@@ -62,7 +69,7 @@ def _resolve_query_res(query):
     return re.split('[({]', query, 1)[0].strip() or query
 
 
-def _traced_graphql(func, args, kwargs):
+def _traced_graphql(func, args, kwargs, span_kwargs=None):
     """
     Wrapper for graphql.graphql function.
     """
@@ -86,12 +93,15 @@ def _traced_graphql(func, args, kwargs):
     if not tracer.enabled:
         return func(*args, **kwargs)
 
-    with tracer.trace(
-        RES,
-        span_type=TYPE,
-        service=SERVICE,
-        resource=_resolve_query_res(query)
-    ) as span:
+    _span_kwargs = {
+        'name': RES_NAME,
+        'span_type': TYPE,
+        'service': os.getenv(SERVICE_ENV_VAR, SERVICE),
+        'resource': _resolve_query_res(query)
+    }
+    _span_kwargs.update(span_kwargs or {})
+
+    with tracer.trace(**_span_kwargs) as span:
         span.set_tag(QUERY, query)
         result = None
         try:
@@ -117,5 +127,5 @@ def _traced_graphql(func, args, kwargs):
                     span.error = 1
 
 
-def traced_graphql(*args, **kwargs):
-    return _traced_graphql(_graphql, args, kwargs)
+def traced_graphql(*args, _span_kwargs=None, **kwargs):
+    return _traced_graphql(_graphql, args, kwargs, span_kwargs=_span_kwargs)

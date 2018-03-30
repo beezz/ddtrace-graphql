@@ -1,3 +1,4 @@
+import os
 from graphql import (
     GraphQLObjectType,
     GraphQLField,
@@ -13,10 +14,12 @@ from ddtrace.tracer import Tracer
 from ddtrace.writer import AgentWriter
 
 
+import ddtrace_graphql
 from ddtrace_graphql import (
     TracedGraphQLSchema,
     patch, unpatch, traced_graphql,
-    QUERY, ERRORS, INVALID, DATA_EMPTY
+    QUERY, ERRORS, INVALID, DATA_EMPTY,
+    SERVICE
 )
 from ddtrace_graphql.patch import _traced_graphql
 
@@ -103,6 +106,10 @@ class TestGraphQL:
         assert not isinstance(graphql.graphql, FunctionWrapper)
         patch()
         assert isinstance(graphql.graphql, FunctionWrapper)
+
+        tracer, schema = get_traced_schema()
+        graphql.graphql(schema, '{ hello }')
+
         unpatch()
         assert gql == graphql.graphql
 
@@ -110,13 +117,13 @@ class TestGraphQL:
         tracer, schema = get_traced_schema()
         result = traced_graphql(schema, '{ hello world }')
         span = tracer.writer.pop()[0]
-        assert span.get_metric(INVALID) == int(result.invalid)
+        assert span.get_metric(INVALID) == result.invalid == 1
         assert span.get_metric(DATA_EMPTY) == 1
         assert span.error == 0
 
         result = traced_graphql(schema, '{ hello }')
         span = tracer.writer.pop()[0]
-        assert span.get_metric(INVALID) == int(result.invalid)
+        assert span.get_metric(INVALID) == result.invalid == 0
         assert span.error == 0
 
     def test_unhandled_exception(self, monkeypatch):
@@ -218,6 +225,50 @@ class TestGraphQL:
         traced_graphql(schema, query)
         span = tracer.writer.pop()[0]
         assert span.resource == 'mutation fnCall'
+
+        query = 'mutation fnCall { }'
+        traced_graphql(schema, query, _span_kwargs={'resource': 'test'})
+        span = tracer.writer.pop()[0]
+        assert span.resource == 'test'
+
+    @staticmethod
+    def test_span_kwargs_overrides():
+        query = '{ hello }'
+        tracer, schema = get_traced_schema()
+
+        traced_graphql(schema, query, _span_kwargs={'resource': 'test'})
+        span = tracer.writer.pop()[0]
+        assert span.resource == 'test'
+
+        traced_graphql(
+            schema,
+            query,
+            _span_kwargs={
+                'service': 'test',
+                'name': 'test',
+            }
+        )
+        span = tracer.writer.pop()[0]
+        assert span.service == 'test'
+        assert span.name == 'test'
+        assert span.resource == '{ hello }'
+
+    @staticmethod
+    def test_service_from_env():
+        query = '{ hello }'
+        tracer, schema = get_traced_schema()
+
+        global traced_graphql
+        traced_graphql(schema, query)
+        span = tracer.writer.pop()[0]
+        assert span.service == SERVICE
+
+        os.environ['DDTRACE_GRAPHQL_SERVICE'] = 'test.test'
+
+        traced_graphql(schema, query)
+        span = tracer.writer.pop()[0]
+        assert span.service == 'test.test'
+
 
     @staticmethod
     def test_tracer_disabled():

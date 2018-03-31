@@ -6,6 +6,7 @@ https://github.com/graphql-python/graphql-core
 
 # stdlib
 import functools
+import json
 import logging
 import os
 import re
@@ -14,7 +15,7 @@ import re
 import wrapt
 import graphql
 from graphql.language.ast import Document
-from graphql.error import GraphQLError
+from graphql.error import GraphQLError, format_error
 
 # project
 import ddtrace
@@ -111,7 +112,13 @@ def _traced_graphql(func, args, kwargs, span_kwargs=None):
             # `span.error` must be integer
             span.error = int(result is None)
             if result is not None:
-                span.set_tag(ERRORS, result.errors)
+                result.errors and span.set_tag(
+                    ERRORS,
+                    json.dumps(
+                        [format_error(err) for err in result.errors],
+                        indent=4,
+                    ),
+                )
                 span.set_metric(INVALID, int(result.invalid))
                 span.set_metric(DATA_EMPTY, int(result.data is None))
                 if result.errors and not result.invalid:
@@ -127,5 +134,5 @@ def _traced_graphql(func, args, kwargs, span_kwargs=None):
                     span.error = 1
 
 
-def traced_graphql(*args, _span_kwargs=None, **kwargs):
-    return _traced_graphql(_graphql, args, kwargs, span_kwargs=_span_kwargs)
+def traced_graphql(*args, span_kwargs=None, **kwargs):
+    return _traced_graphql(_graphql, args, kwargs, span_kwargs=span_kwargs)

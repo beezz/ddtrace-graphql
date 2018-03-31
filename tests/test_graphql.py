@@ -1,4 +1,5 @@
 import os
+import json
 from graphql import (
     GraphQLObjectType,
     GraphQLField,
@@ -201,12 +202,23 @@ class TestGraphQL:
 
     @staticmethod
     def test_errors_tag():
-        query = '{ hello world }'
+        query = '{ hello }'
         tracer, schema = get_traced_schema()
         result = traced_graphql(schema, query)
         span = tracer.writer.pop()[0]
-        assert span.get_tag(ERRORS)
-        assert str(result.errors) == span.get_tag(ERRORS)
+        assert not span.get_tag(ERRORS)
+        assert result.errors is span.get_tag(ERRORS) is None
+
+        query = '{ hello world }'
+        result = traced_graphql(schema, query)
+        span = tracer.writer.pop()[0]
+        span_errors = span.get_tag(ERRORS)
+        assert span_errors
+        _se = json.loads(span_errors)
+        assert len(_se) == len(result.errors) == 1
+        assert 'message' in _se[0]
+        assert 'line' in _se[0]['locations'][0]
+        assert 'column' in _se[0]['locations'][0]
 
     @staticmethod
     def test_resource():
@@ -227,7 +239,7 @@ class TestGraphQL:
         assert span.resource == 'mutation fnCall'
 
         query = 'mutation fnCall { }'
-        traced_graphql(schema, query, _span_kwargs={'resource': 'test'})
+        traced_graphql(schema, query, span_kwargs={'resource': 'test'})
         span = tracer.writer.pop()[0]
         assert span.resource == 'test'
 
@@ -236,14 +248,14 @@ class TestGraphQL:
         query = '{ hello }'
         tracer, schema = get_traced_schema()
 
-        traced_graphql(schema, query, _span_kwargs={'resource': 'test'})
+        traced_graphql(schema, query, span_kwargs={'resource': 'test'})
         span = tracer.writer.pop()[0]
         assert span.resource == 'test'
 
         traced_graphql(
             schema,
             query,
-            _span_kwargs={
+            span_kwargs={
                 'service': 'test',
                 'name': 'test',
             }

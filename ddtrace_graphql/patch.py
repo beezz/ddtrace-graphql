@@ -84,6 +84,10 @@ def _is_server_error(result):
     )
 
 
+def _original_error(err):
+    return err.original_error if hasattr(err, 'original_error') else err
+
+
 def _format_errors(errors):
     return json.dumps(
         [
@@ -97,8 +101,6 @@ def _format_errors(errors):
 
 def _format_error_traceback(error):
     buffer_file = StringIO()
-    if hasattr(error, 'original_error'):
-        error = error.original_error
     traceback.print_exception(
         type(error),
         error,
@@ -111,9 +113,23 @@ def _format_error_traceback(error):
 
 def _format_errors_traceback(errors):
     return "\n\n".join([
-        _format_error_traceback(error)
+        _format_error_traceback(_original_error(error))
         for error in errors if isinstance(error, Exception)
     ])
+
+
+def _format_errors_msg(errors):
+    return json.dumps([
+        str(_original_error(error))
+        for error in errors if isinstance(error, Exception)
+    ], indent=2)
+
+
+def _format_errors_type(errors):
+    return json.dumps([
+        type(_original_error(error)).__name__
+        for error in errors if isinstance(error, Exception)
+    ], indent=2)
 
 
 def _resolve_query_res(query):
@@ -172,6 +188,12 @@ def _traced_graphql(func, args, kwargs, span_kwargs=None):
                     span.set_tag(
                         ddtrace_errors.ERROR_STACK,
                         _format_errors_traceback(result.errors))
+                    span.set_tag(
+                        ddtrace_errors.ERROR_MSG,
+                        _format_errors_msg(result.errors))
+                    span.set_tag(
+                        ddtrace_errors.ERROR_TYPE,
+                        _format_errors_type(result.errors))
 
                 span.error = int(_is_server_error(result))
 

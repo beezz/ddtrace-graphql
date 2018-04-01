@@ -144,6 +144,12 @@ class TestGraphQL:
         assert 'Testing stuff' in error_stack
         assert 'Traceback' in error_stack
 
+        error_msg = span.get_tag(ddtrace_errors.ERROR_MSG)
+        assert 'Testing stuff' in error_msg
+
+        error_type = span.get_tag(ddtrace_errors.ERROR_TYPE)
+        assert 'Exception' in error_type
+
         try:
             raise Exception('Testing stuff')
         except Exception as exc:

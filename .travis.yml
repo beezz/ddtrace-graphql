@@ -1,4 +1,7 @@
 language: python
+env:
+  - GRAPHQL_VERSION=2.0
+  - GRAPHQL_VERSION=1.1.0
 python:
   - "3.5"
   - "3.6"
@@ -6,4 +9,5 @@ python:
 install:
   - pip install .[test]
 script:
+  - pip install graphql-core==${GRAPHQL_VERSION}
   - python -m pytest tests --cov-report term-missing --cov ddtrace_graphql

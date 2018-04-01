@@ -3,8 +3,8 @@ import re
 import traceback
 from io import StringIO
 
-from graphql.language.ast import Document
 from graphql.error import GraphQLError, format_error
+from graphql.language.ast import Document
 
 
 def get_request_string(args, kwargs):
@@ -138,4 +138,3 @@ def resolve_query_res(query):
     # split by '{' for queries without arguments
     # rather full query than empty resource name
     return re.split('[({]', query, 1)[0].strip() or query
-

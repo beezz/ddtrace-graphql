@@ -1,13 +1,11 @@
-import os
 import logging
+import os
 
-import graphql
 import ddtrace
-
+import graphql
 from ddtrace.ext import errors as ddtrace_errors
 
 from ddtrace_graphql import utils
-
 
 logger = logging.getLogger(__name__)
 _graphql = graphql.graphql
@@ -90,4 +88,3 @@ def traced_graphql_wrapped(func, args, kwargs, span_kwargs=None):
 def traced_graphql(*args, span_kwargs=None, **kwargs):
     return traced_graphql_wrapped(
         _graphql, args, kwargs, span_kwargs=span_kwargs)
-

@@ -7,13 +7,11 @@ https://github.com/graphql-python/graphql-core
 import logging
 import os
 
-import wrapt
 import graphql
-
+import wrapt
 from ddtrace.util import unwrap
 
 from ddtrace_graphql.base import traced_graphql_wrapped
-
 
 logger = logging.getLogger(__name__)
 
@@ -34,4 +32,3 @@ def patch(span_kwargs=None):
 def unpatch():
     logger.debug('Unpatching `graphql.graphql` function.')
     unwrap(graphql, 'graphql')
-

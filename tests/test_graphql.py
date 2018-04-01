@@ -1,28 +1,21 @@
-import os
 import json
-from graphql import (
-    GraphQLObjectType,
-    GraphQLField,
-    GraphQLString
-)
+import os
+
 import graphql
-from graphql.execution import ExecutionResult
-from graphql.language.source import Source as GraphQLSource
-from graphql.language.parser import parse as graphql_parse
-from wrapt import FunctionWrapper
-from ddtrace.ext import errors as ddtrace_errors
 from ddtrace.encoding import JSONEncoder, MsgpackEncoder
+from ddtrace.ext import errors as ddtrace_errors
 from ddtrace.tracer import Tracer
 from ddtrace.writer import AgentWriter
-
+from graphql import GraphQLField, GraphQLObjectType, GraphQLString
+from graphql.execution import ExecutionResult
+from graphql.language.parser import parse as graphql_parse
+from graphql.language.source import Source as GraphQLSource
+from wrapt import FunctionWrapper
 
 import ddtrace_graphql
-from ddtrace_graphql import (
-    TracedGraphQLSchema,
-    patch, unpatch, traced_graphql,
-    QUERY, ERRORS, INVALID, DATA_EMPTY,
-    SERVICE
-)
+from ddtrace_graphql import (DATA_EMPTY, ERRORS, INVALID, QUERY, SERVICE,
+                             TracedGraphQLSchema, patch, traced_graphql,
+                             unpatch)
 from ddtrace_graphql.base import traced_graphql_wrapped
 
 
@@ -307,4 +300,3 @@ class TestGraphQL:
         tracer.enabled = False
         traced_graphql(schema, query)
         assert not tracer.writer.pop()
-

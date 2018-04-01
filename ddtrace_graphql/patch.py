@@ -10,6 +10,9 @@ import json
 import logging
 import os
 import re
+import traceback
+
+from io import StringIO
 
 # 3p
 import wrapt
@@ -19,6 +22,7 @@ from graphql.error import GraphQLError, format_error
 
 # project
 import ddtrace
+from ddtrace.ext import errors as ddtrace_errors
 from ddtrace.util import unwrap
 
 
@@ -91,6 +95,30 @@ def _format_errors(errors):
     )
 
 
+def _format_error_traceback(error):
+    buffer_file = StringIO()
+    if hasattr(error, 'original_error'):
+        error = error.original_error
+    traceback.print_exception(
+        type(error),
+        error,
+        error.__traceback__,
+        file=buffer_file,
+        limit=20,
+    )
+    return buffer_file.getvalue()
+
+
+def _format_errors_traceback(errors):
+    return json.dumps(
+            [
+                _format_error_traceback(error)
+                for error in errors if isinstance(error, Exception)
+            ],
+            indent=2,
+        )
+
+
 def _resolve_query_res(query):
     # split by '(' for queries with arguments
     # split by '{' for queries without arguments
@@ -142,8 +170,12 @@ def _traced_graphql(func, args, kwargs, span_kwargs=None):
 
             if result is not None:
 
-                result.errors and span.set_tag(
-                    ERRORS, _format_errors(result.errors))
+                if result.errors:
+                    span.set_tag(ERRORS, _format_errors(result.errors))
+                    span.set_tag(
+                        ddtrace_errors.ERROR_STACK,
+                        _format_errors_traceback(result.errors))
+
                 span.error = int(_is_server_error(result))
 
                 span.set_metric(INVALID, int(result.invalid))

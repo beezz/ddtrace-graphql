@@ -10,6 +10,7 @@ from graphql.execution import ExecutionResult
 from graphql.language.source import Source as GraphQLSource
 from graphql.language.parser import parse as graphql_parse
 from wrapt import FunctionWrapper
+from ddtrace.ext import errors as ddtrace_errors
 from ddtrace.encoding import JSONEncoder, MsgpackEncoder
 from ddtrace.tracer import Tracer
 from ddtrace.writer import AgentWriter
@@ -139,10 +140,19 @@ class TestGraphQL:
         assert span.error == 1
         assert span.get_metric(DATA_EMPTY) == 0
 
+        error_stack = span.get_tag(ddtrace_errors.ERROR_STACK)
+        assert 'Testing stuff' in error_stack
+        assert 'Traceback' in error_stack
+
+        try:
+            raise Exception('Testing stuff')
+        except Exception as exc:
+            _error = exc
+
         def _tg(*args, **kwargs):
             def func(*args, **kwargs):
                 return ExecutionResult(
-                    errors=[Exception()],
+                    errors=[_error],
                     invalid=True,
                 )
             return _traced_graphql(func, args, kwargs)
@@ -155,6 +165,9 @@ class TestGraphQL:
         assert span.error == 1
         assert span.get_metric(DATA_EMPTY) == 1
 
+        error_stack = span.get_tag(ddtrace_errors.ERROR_STACK)
+        assert 'Testing stuff' in error_stack
+        assert 'Traceback' in error_stack
 
     def test_request_string_resolve(self):
         query = '{ hello }'

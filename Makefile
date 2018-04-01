@@ -13,6 +13,7 @@ test:
 versionbump:
 	bumpversion  \
 		--commit \
+		--tag \
 		--current-version `cat VERSION`  \
 		$(VERSION_PART) ./VERSION
 

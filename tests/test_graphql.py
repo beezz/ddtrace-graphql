@@ -281,7 +281,6 @@ class TestGraphQL:
         span = tracer.writer.pop()[0]
         assert span.service == 'test.test'
 
-
     @staticmethod
     def test_tracer_disabled():
         query = '{ hello world }'
@@ -289,3 +288,4 @@ class TestGraphQL:
         tracer.enabled = False
         traced_graphql(schema, query)
         assert not tracer.writer.pop()
+

@@ -1,7 +1,11 @@
 language: python
 env:
-  - GRAPHQL_VERSION=2.0
-  - GRAPHQL_VERSION=1.1.0
+  - GRAPHQL_VERSION="==2.0"
+  - GRAPHQL_VERSION="==1.1.0"
+  - GRAPHQL_VERSION=
+  - DDTRACE_VERSION="==0.11.1"
+  - DDTRACE_VERSION="==0.10.1"
+  - DDTRACE_VERSION=
 python:
   - "3.5"
   - "3.6"
@@ -9,5 +13,5 @@ python:
 install:
   - pip install .[test]
 script:
-  - pip install graphql-core==${GRAPHQL_VERSION}
+  - pip install graphql-core${GRAPHQL_VERSION} ddtrace${DDTRACE_VERSION}
   - python -m pytest tests --cov-report term-missing --cov ddtrace_graphql

@@ -23,7 +23,7 @@ from ddtrace_graphql import (
     QUERY, ERRORS, INVALID, DATA_EMPTY,
     SERVICE
 )
-from ddtrace_graphql.patch import _traced_graphql
+from ddtrace_graphql.base import traced_graphql_wrapped
 
 
 class DummyWriter(AgentWriter):
@@ -161,7 +161,7 @@ class TestGraphQL:
                     errors=[_error],
                     invalid=True,
                 )
-            return _traced_graphql(func, args, kwargs)
+            return traced_graphql_wrapped(func, args, kwargs)
 
         tracer, schema = get_traced_schema(resolver=exc_resolver)
         result = _tg(schema, '{ hello }')

@@ -12,6 +12,10 @@ ddtrace-graphql
    :target: https://pyup.io/repos/github/beezz/ddtrace-graphql/
 
 
+.. image:: https://badge.fury.io/py/ddtrace-graphql.svg
+   :target: https://badge.fury.io/py/ddtrace-graphql
+
+
 Python library to trace graphql calls with Datadog.
 
 * `graphql-core <https://github.com/graphql-python/graphql-core>`_

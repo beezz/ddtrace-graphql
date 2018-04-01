@@ -21,6 +21,15 @@ Python library to trace graphql calls with Datadog.
 * `Datadog Trace Client <http://pypi.datadoghq.com/trace/docs/>`_
 
 
+Compatibility
+-------------
+
+``ddtrace-graphql`` is tested with:
+
+* Python versions: 3.5, 3.6, nightly
+* graphql-core: 2.0, 1.1.0, latest
+* ddtrace: 0.11.1, 0.10.1, latest
+
 *Screenshots for pyramid app serving GraphQL with tracing enabled:*
 
 .. figure:: screenshots/service.png

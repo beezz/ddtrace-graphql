@@ -22,14 +22,15 @@ required_modules = ['graphql']
 
 with require_modules(required_modules) as missing_modules:
     if not missing_modules:
-        from .patch import (
-            TracedGraphQLSchema,
-            patch, unpatch, traced_graphql,
+        from .base import (
+            TracedGraphQLSchema, traced_graphql,
             TYPE, SERVICE, QUERY, ERRORS, INVALID, RES_NAME, DATA_EMPTY
         )
+        from .patch import patch, unpatch
         __all__ = [
             'TracedGraphQLSchema',
             'patch', 'unpatch', 'traced_graphql',
             'TYPE', 'SERVICE', 'QUERY', 'ERRORS', 'INVALID',
             'RES_NAME', 'DATA_EMPTY',
         ]
+

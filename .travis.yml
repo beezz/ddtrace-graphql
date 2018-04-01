@@ -18,6 +18,10 @@ python:
   - "nightly"
 install:
   - pip install .[test]
+  - pip install codecov
 script:
   - pip install graphql-core${GRAPHQL_VERSION} ddtrace${DDTRACE_VERSION}
   - python -m pytest tests --cov-report term-missing --cov ddtrace_graphql
+
+after_script:
+  - codecov

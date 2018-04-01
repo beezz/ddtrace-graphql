@@ -1,28 +1,22 @@
-import os
 import json
-from graphql import (
-    GraphQLObjectType,
-    GraphQLField,
-    GraphQLString
-)
+import os
+
 import graphql
-from graphql.execution import ExecutionResult
-from graphql.language.source import Source as GraphQLSource
-from graphql.language.parser import parse as graphql_parse
-from wrapt import FunctionWrapper
 from ddtrace.encoding import JSONEncoder, MsgpackEncoder
+from ddtrace.ext import errors as ddtrace_errors
 from ddtrace.tracer import Tracer
 from ddtrace.writer import AgentWriter
-
+from graphql import GraphQLField, GraphQLObjectType, GraphQLString
+from graphql.execution import ExecutionResult
+from graphql.language.parser import parse as graphql_parse
+from graphql.language.source import Source as GraphQLSource
+from wrapt import FunctionWrapper
 
 import ddtrace_graphql
-from ddtrace_graphql import (
-    TracedGraphQLSchema,
-    patch, unpatch, traced_graphql,
-    QUERY, ERRORS, INVALID, DATA_EMPTY,
-    SERVICE
-)
-from ddtrace_graphql.patch import _traced_graphql
+from ddtrace_graphql import (DATA_EMPTY, ERRORS, INVALID, QUERY, SERVICE,
+                             TracedGraphQLSchema, patch, traced_graphql,
+                             unpatch)
+from ddtrace_graphql.base import traced_graphql_wrapped
 
 
 class DummyWriter(AgentWriter):
@@ -139,13 +133,28 @@ class TestGraphQL:
         assert span.error == 1
         assert span.get_metric(DATA_EMPTY) == 0
 
+        error_stack = span.get_tag(ddtrace_errors.ERROR_STACK)
+        assert 'Testing stuff' in error_stack
+        assert 'Traceback' in error_stack
+
+        error_msg = span.get_tag(ddtrace_errors.ERROR_MSG)
+        assert 'Testing stuff' in error_msg
+
+        error_type = span.get_tag(ddtrace_errors.ERROR_TYPE)
+        assert 'Exception' in error_type
+
+        try:
+            raise Exception('Testing stuff')
+        except Exception as exc:
+            _error = exc
+
         def _tg(*args, **kwargs):
             def func(*args, **kwargs):
                 return ExecutionResult(
-                    errors=[Exception()],
+                    errors=[_error],
                     invalid=True,
                 )
-            return _traced_graphql(func, args, kwargs)
+            return traced_graphql_wrapped(func, args, kwargs)
 
         tracer, schema = get_traced_schema(resolver=exc_resolver)
         result = _tg(schema, '{ hello }')
@@ -155,6 +164,9 @@ class TestGraphQL:
         assert span.error == 1
         assert span.get_metric(DATA_EMPTY) == 1
 
+        error_stack = span.get_tag(ddtrace_errors.ERROR_STACK)
+        assert 'Testing stuff' in error_stack
+        assert 'Traceback' in error_stack
 
     def test_request_string_resolve(self):
         query = '{ hello }'
@@ -288,4 +300,3 @@ class TestGraphQL:
         tracer.enabled = False
         traced_graphql(schema, query)
         assert not tracer.writer.pop()
-

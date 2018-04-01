@@ -110,13 +110,10 @@ def _format_error_traceback(error):
 
 
 def _format_errors_traceback(errors):
-    return json.dumps(
-            [
-                _format_error_traceback(error)
-                for error in errors if isinstance(error, Exception)
-            ],
-            indent=2,
-        )
+    return "\n\n".join([
+        _format_error_traceback(error)
+        for error in errors if isinstance(error, Exception)
+    ])
 
 
 def _resolve_query_res(query):

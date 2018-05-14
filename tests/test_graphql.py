@@ -296,8 +296,8 @@ class TestGraphQL:
     @staticmethod
     def test_span_callback():
         cb_args = {}
-        def test_cb(**kwargs):
-            cb_args.update(kwargs)
+        def test_cb(result, span):
+            cb_args.update(dict(result=result, span=span))
         query = '{ hello world }'
         tracer, schema = get_traced_schema()
         result = traced_graphql(schema, query, span_callback=test_cb)

@@ -173,7 +173,7 @@ send metrics based on span, result attributes.
    from datadog import statsd
    from ddtrace_graphql import patch, CLIENT_ERROR, INVALID
 
-   def callback(result=result, span=span):
+   def callback(result, span):
        tags = ['resource:{}'.format(span.resource.replace(' ', '_'))]
        statsd.increment('{}.request'.format(span.service), tags=tags)
        if span.error:

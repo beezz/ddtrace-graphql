@@ -165,7 +165,7 @@ where ``result`` is graphql execution result or ``None`` in case of fatal error 
 (`ddtrace.span.Span <https://github.com/DataDog/dd-trace-py/blob/master/ddtrace/span.py>`_).
 
 What is it good for? Unfortunately one cannot filter/alarm on span metrics resp.
-meta information even if those are numeric (why Datadog?) so you can use it
+meta information even if those are numeric (why Datadog?) so you can use it to
 send metrics based on span, result attributes.
 
 .. code-block:: python

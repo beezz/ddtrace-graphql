@@ -22,20 +22,24 @@ def get_query_string(args, kwargs):
     return rs.loc.source.body if isinstance(rs, Document) else rs
 
 
-def is_server_error(result):
+def is_server_error(result, ignore_exceptions):
     """
     Determines from ``result`` if server error occured.
 
     Based on error handling done here https://bit.ly/2JamxWF
     """
+    errors = None if result.errors is None else [
+        error for error in result.errors
+        if not isinstance(original_error(error), ignore_exceptions)
+    ]
     return bool(
         (
-            result.errors
+            errors
             and not result.invalid
         )
         or
         (
-            result.errors
+            errors
             and result.invalid
             and len(result.errors) == 1
             and not isinstance(result.errors[0], GraphQLError)

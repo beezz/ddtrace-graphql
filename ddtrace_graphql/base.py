@@ -32,7 +32,13 @@ class TracedGraphQLSchema(graphql.GraphQLSchema):
         super(TracedGraphQLSchema, self).__init__(*args, **kwargs)
 
 
-def traced_graphql_wrapped(func, args, kwargs, span_kwargs=None):
+def traced_graphql_wrapped(
+    func,
+    args,
+    kwargs,
+    span_kwargs=None,
+    ignore_exceptions=(),
+):
     """
     Wrapper for graphql.graphql function.
     """
@@ -79,12 +85,16 @@ def traced_graphql_wrapped(func, args, kwargs, span_kwargs=None):
                         ddtrace_errors.ERROR_TYPE,
                         utils.format_errors_type(result.errors))
 
-                span.error = int(utils.is_server_error(result))
+                span.error = int(utils.is_server_error(
+                    result,
+                    ignore_exceptions,
+                ))
 
                 span.set_metric(INVALID, int(result.invalid))
                 span.set_metric(DATA_EMPTY, int(result.data is None))
 
 
-def traced_graphql(*args, span_kwargs=None, **kwargs):
+def traced_graphql(*args, span_kwargs=None, ignore_exceptions=(), **kwargs):
     return traced_graphql_wrapped(
-        _graphql, args, kwargs, span_kwargs=span_kwargs)
+        _graphql, args, kwargs,
+        span_kwargs=span_kwargs, ignore_exceptions=ignore_exceptions)

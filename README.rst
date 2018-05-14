@@ -155,6 +155,30 @@ For more information visit `ddtrace.Tracer.trace <http://pypi.datadoghq.com/trac
    traced_graphql(schema, query, span_kwargs=dict(resource='bar.resource'))
 
 
+ignore_exceptions
+=================
+
+Some frameworks use exceptions to handle 404s etc. you may want to ignore some
+exceptions resp. not consider them server error. To do this you can supply
+`ignore_exceptions` argument as list of exception classes to ignore.
+`ignore_exceptions` will be used in python's `isinstance` thus you can ignore
+also using base classes.
+
+
+.. code-block:: python
+
+   from ddtrace_graphql import patch
+   patch(ignore_exceptions=(ObjectNotFound, PermissionsDenied))
+
+
+.. code-block:: python
+
+   from ddtrace_graphql import traced_graphql
+   traced_graphql(
+       schema, query,
+       ignore_exceptions=(ObjectNotFound, PermissionsDenied))
+
+
 Development
 ===========
 

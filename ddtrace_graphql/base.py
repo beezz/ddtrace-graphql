@@ -38,6 +38,7 @@ def traced_graphql_wrapped(
     args,
     kwargs,
     span_kwargs=None,
+    span_callback=None,
     ignore_exceptions=(),
 ):
     """
@@ -99,8 +100,20 @@ def traced_graphql_wrapped(
                 span.set_metric(INVALID, int(result.invalid))
                 span.set_metric(DATA_EMPTY, int(result.data is None))
 
+            if span_callback is not None:
+                span_callback(result=result, span=span)
 
-def traced_graphql(*args, span_kwargs=None, ignore_exceptions=(), **kwargs):
+
+def traced_graphql(
+    *args,
+    span_kwargs=None,
+    span_callback=None,
+    ignore_exceptions=(),
+    **kwargs
+):
     return traced_graphql_wrapped(
         _graphql, args, kwargs,
-        span_kwargs=span_kwargs, ignore_exceptions=ignore_exceptions)
+        span_kwargs=span_kwargs,
+        span_callback=span_callback,
+        ignore_exceptions=ignore_exceptions
+    )

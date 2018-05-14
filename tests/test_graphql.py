@@ -105,9 +105,26 @@ class TestGraphQL:
 
         tracer, schema = get_traced_schema()
         graphql.graphql(schema, '{ hello }')
+        span = tracer.writer.pop()[0]
 
         unpatch()
         assert gql == graphql.graphql
+
+        cb_args = {}
+        def test_cb(**kwargs):
+            cb_args.update(kwargs)
+        patch(span_callback=test_cb)
+        assert isinstance(graphql.graphql, FunctionWrapper)
+
+        result = graphql.graphql(schema, '{ hello }')
+        span = tracer.writer.pop()[0]
+        assert cb_args['span'] is span
+        assert cb_args['result'] is result
+
+        unpatch()
+        assert gql == graphql.graphql
+
+
 
     def test_invalid(self):
         tracer, schema = get_traced_schema()
@@ -275,6 +292,18 @@ class TestGraphQL:
         traced_graphql(schema, query, span_kwargs={'resource': 'test'})
         span = tracer.writer.pop()[0]
         assert span.resource == 'test'
+
+    @staticmethod
+    def test_span_callback():
+        cb_args = {}
+        def test_cb(**kwargs):
+            cb_args.update(kwargs)
+        query = '{ hello world }'
+        tracer, schema = get_traced_schema()
+        result = traced_graphql(schema, query, span_callback=test_cb)
+        span = tracer.writer.pop()[0]
+        assert cb_args['span'] is span
+        assert cb_args['result'] is result
 
     @staticmethod
     def test_span_kwargs_overrides():

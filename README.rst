@@ -155,6 +155,39 @@ For more information visit `ddtrace.Tracer.trace <http://pypi.datadoghq.com/trac
    traced_graphql(schema, query, span_kwargs=dict(resource='bar.resource'))
 
 
+
+span_callback
+=============
+
+In case you want to postprocess trace span you may use ``span_callback``
+argument. ``span_callback`` must be function with signature ``def callback(result=result, span=span)``
+where ``result`` is graphql execution result or ``None`` in case of fatal error and span is trace span object
+(`ddtrace.span.Span <https://github.com/DataDog/dd-trace-py/blob/master/ddtrace/span.py>`_).
+
+What is it good for? Unfortunately one cannot filter/alarm on span metrics resp.
+meta information even if those are numeric (why Datadog?) so you can use it
+send metrics based on span, result attributes.
+
+.. code-block:: python
+
+   from datadog import statsd
+   from ddtrace_graphql import patch, CLIENT_ERROR, INVALID
+
+   def callback(result=result, span=span):
+       tags = {
+           'resource': span.resource.replace(' ', '_'),
+       }
+       statsd.increment('{}.request'.format(span.service), tags=tags)
+       if span.error:
+           statsd.increment('{}.error'.format(span.service), tags=tags)
+       elif span.get_metric(CLIENT_ERROR):
+           statsd.increment('{}.{}'.format(span.service, CLIENT_ERROR), tags=tags)
+       if span.get_metric(INVALID):
+           statsd.increment('{}.{}'.format(span.service, INVALID), tags=tags)
+
+   patch(span_callback=callback)
+
+
 ignore_exceptions
 =================
 

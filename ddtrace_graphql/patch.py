@@ -16,7 +16,7 @@ from ddtrace_graphql.base import traced_graphql_wrapped
 logger = logging.getLogger(__name__)
 
 
-def patch(span_kwargs=None, ignore_exceptions=()):
+def patch(span_kwargs=None, span_callback=None, ignore_exceptions=()):
     """
     Monkeypatches graphql-core library to trace graphql calls execution.
     """
@@ -26,7 +26,9 @@ def patch(span_kwargs=None, ignore_exceptions=()):
         return traced_graphql_wrapped(
             func, args, kwargs,
             span_kwargs=span_kwargs,
-            ignore_exceptions=ignore_exceptions)
+            span_callback=span_callback,
+            ignore_exceptions=ignore_exceptions
+        )
 
     wrapt.wrap_function_wrapper(graphql, 'graphql', wrapper)
 

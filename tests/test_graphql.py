@@ -121,7 +121,7 @@ class TestGraphQL:
         assert span.get_metric(INVALID) == result.invalid == 0
         assert span.error == 0
 
-    def test_unhandled_exception(self, monkeypatch):
+    def test_unhandled_exception(self):
 
         def exc_resolver(*args):
             raise Exception('Testing stuff')
@@ -167,6 +167,24 @@ class TestGraphQL:
         error_stack = span.get_tag(ddtrace_errors.ERROR_STACK)
         assert 'Testing stuff' in error_stack
         assert 'Traceback' in error_stack
+
+    def test_not_server_error(self):
+        class TestException(Exception):
+            pass
+
+        def exc_resolver(*args):
+            raise TestException('Testing stuff')
+
+        tracer, schema = get_traced_schema(resolver=exc_resolver)
+        result = traced_graphql(
+            schema,
+            '{ hello }',
+            ignore_exceptions=(TestException),
+        )
+        span = tracer.writer.pop()[0]
+        assert span.get_metric(INVALID) == 0
+        assert span.error == 0
+        assert span.get_metric(DATA_EMPTY) == 0
 
     def test_request_string_resolve(self):
         query = '{ hello }'

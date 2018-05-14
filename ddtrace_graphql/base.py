@@ -15,6 +15,7 @@ TYPE = 'graphql'
 QUERY = 'query'
 ERRORS = 'errors'
 INVALID = 'invalid'
+CLIENT_ERROR = 'client_error'
 DATA_EMPTY = 'data_empty'
 RES_NAME = 'graphql.graphql'
 #
@@ -71,6 +72,7 @@ def traced_graphql_wrapped(
 
             if result is not None:
 
+                span.error = 0
                 if result.errors:
                     span.set_tag(
                         ERRORS,
@@ -85,11 +87,15 @@ def traced_graphql_wrapped(
                         ddtrace_errors.ERROR_TYPE,
                         utils.format_errors_type(result.errors))
 
-                span.error = int(utils.is_server_error(
-                    result,
-                    ignore_exceptions,
-                ))
+                    span.error = int(utils.is_server_error(
+                        result,
+                        ignore_exceptions,
+                    ))
 
+                span.set_metric(
+                    CLIENT_ERROR,
+                    int(bool(not span.error and result.errors))
+                )
                 span.set_metric(INVALID, int(result.invalid))
                 span.set_metric(DATA_EMPTY, int(result.data is None))
 

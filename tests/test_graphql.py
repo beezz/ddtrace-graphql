@@ -13,9 +13,10 @@ from graphql.language.source import Source as GraphQLSource
 from wrapt import FunctionWrapper
 
 import ddtrace_graphql
-from ddtrace_graphql import (DATA_EMPTY, ERRORS, INVALID, QUERY, SERVICE,
-                             TracedGraphQLSchema, patch, traced_graphql,
-                             unpatch)
+from ddtrace_graphql import (
+    DATA_EMPTY, ERRORS, INVALID, QUERY, SERVICE, CLIENT_ERROR,
+    TracedGraphQLSchema, patch, traced_graphql, unpatch
+)
 from ddtrace_graphql.base import traced_graphql_wrapped
 
 
@@ -131,6 +132,7 @@ class TestGraphQL:
         span = tracer.writer.pop()[0]
         assert span.get_metric(INVALID) == 0
         assert span.error == 1
+        assert span.get_metric(CLIENT_ERROR) == 0
         assert span.get_metric(DATA_EMPTY) == 0
 
         error_stack = span.get_tag(ddtrace_errors.ERROR_STACK)
@@ -185,6 +187,7 @@ class TestGraphQL:
         assert span.get_metric(INVALID) == 0
         assert span.error == 0
         assert span.get_metric(DATA_EMPTY) == 0
+        assert span.get_metric(CLIENT_ERROR) == 1
 
     def test_request_string_resolve(self):
         query = '{ hello }'

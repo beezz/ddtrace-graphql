@@ -1,4 +1,4 @@
-ddtrace==0.19.0
+ddtrace==0.20.0
 graphql-core==2.1
 pytest==4.1.0
 pytest-cov==2.6.0

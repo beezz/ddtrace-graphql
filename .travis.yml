@@ -1,26 +1,14 @@
 language: python
-env:
-  - GRAPHQL_VERSION="==2.0" DDTRACE_VERSION="==0.11.1"
-  - GRAPHQL_VERSION="==1.1.0" DDTRACE_VERSION="==0.11.1"
-  - GRAPHQL_VERSION= DDTRACE_VERSION="==0.11.1"
 
-  - GRAPHQL_VERSION="==2.0" DDTRACE_VERSION="==0.10.1"
-  - GRAPHQL_VERSION="==1.1.0" DDTRACE_VERSION="==0.10.1"
-  - GRAPHQL_VERSION= DDTRACE_VERSION="==0.10.1"
-
-  - GRAPHQL_VERSION="==2.0" DDTRACE_VERSION=
-  - GRAPHQL_VERSION="==1.1.0" DDTRACE_VERSION=
-  - GRAPHQL_VERSION= DDTRACE_VERSION=
+dist: xenial
 
 python:
-  - "3.5"
-  - "3.6"
+  - "3.7"
   - "nightly"
 install:
-  - pip install .[test]
+  - pip install -U .[test]
   - pip install codecov
 script:
-  - pip install graphql-core${GRAPHQL_VERSION} ddtrace${DDTRACE_VERSION}
   - python -m pytest tests --cov-report term-missing --cov ddtrace_graphql
 
 after_script:

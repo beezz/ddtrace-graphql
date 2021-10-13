@@ -44,4 +44,5 @@ def patch(span_kwargs=None, span_callback=None, ignore_exceptions=()):
 def unpatch():
     logger.debug("Unpatching `graphql.graphql` function.")
     unwrap(graphql, "graphql")
+    logger.debug("Unpatching `graphql.backend.core.execute_and_validate` function.")
     unwrap(graphql.backend.core, "execute_and_validate")

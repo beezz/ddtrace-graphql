@@ -74,31 +74,35 @@ def traced_graphql_wrapped(
             if result is not None:
 
                 span.error = 0
-                if result.errors:
-                    span.set_tag(
-                        ERRORS,
-                        utils.format_errors(result.errors))
-                    span.set_tag(
-                        ddtrace_errors.ERROR_STACK,
-                        utils.format_errors_traceback(result.errors))
-                    span.set_tag(
-                        ddtrace_errors.ERROR_MSG,
-                        utils.format_errors_msg(result.errors))
-                    span.set_tag(
-                        ddtrace_errors.ERROR_TYPE,
-                        utils.format_errors_type(result.errors))
+                if hasattr(result, 'errors'):
+                    if result.errors:
+                        span.set_tag(
+                            ERRORS,
+                            utils.format_errors(result.errors))
+                        span.set_tag(
+                            ddtrace_errors.ERROR_STACK,
+                            utils.format_errors_traceback(result.errors))
+                        span.set_tag(
+                            ddtrace_errors.ERROR_MSG,
+                            utils.format_errors_msg(result.errors))
+                        span.set_tag(
+                            ddtrace_errors.ERROR_TYPE,
+                            utils.format_errors_type(result.errors))
 
-                    span.error = int(utils.is_server_error(
-                        result,
-                        ignore_exceptions,
-                    ))
+                        span.error = int(utils.is_server_error(
+                            result,
+                            ignore_exceptions,
+                        ))
 
-                span.set_metric(
-                    CLIENT_ERROR,
-                    int(bool(not span.error and result.errors))
-                )
-                span.set_metric(INVALID, int(result.invalid))
-                span.set_metric(DATA_EMPTY, int(result.data is None))
+                    span.set_metric(
+                        CLIENT_ERROR,
+                        int(bool(not span.error and result.errors))
+                    )
+
+                if hasattr(result, 'invalid'):
+                    span.set_metric(INVALID, int(result.invalid))
+                if hasattr(result, 'data'):
+                    span.set_metric(DATA_EMPTY, int(result.data is None))
 
             if span_callback is not None:
                 span_callback(result=result, span=span)

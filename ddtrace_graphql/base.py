@@ -3,7 +3,7 @@ import os
 
 import ddtrace
 import graphql
-from ddtrace.ext import errors as ddtrace_errors
+from ddtrace.constants import ERROR_MSG, ERROR_STACK, ERROR_TYPE
 
 from ddtrace_graphql import utils
 
@@ -79,13 +79,13 @@ def traced_graphql_wrapped(
                         ERRORS,
                         utils.format_errors(result.errors))
                     span.set_tag(
-                        ddtrace_errors.ERROR_STACK,
+                        ERROR_STACK,
                         utils.format_errors_traceback(result.errors))
                     span.set_tag(
-                        ddtrace_errors.ERROR_MSG,
+                        ERROR_MSG,
                         utils.format_errors_msg(result.errors))
                     span.set_tag(
-                        ddtrace_errors.ERROR_TYPE,
+                        ERROR_TYPE,
                         utils.format_errors_type(result.errors))
 
                     span.error = int(utils.is_server_error(

@@ -16,7 +16,7 @@ only certain calls you can use the ``traced_graphql`` function::
 """
 
 
-from ddtrace.contrib.util import require_modules
+from ddtrace.contrib import require_modules
 
 required_modules = ['graphql']
 
